@@ -354,6 +354,12 @@ public class KaimoanaPlugin extends Plugin
 				}
 				spawner.spawn(r, from, arc, hold, hatId, entry.getHatOffsetY());
 			}
+			Player me = client.getLocalPlayer();
+			if (config.catchAnim() && me != null)
+			{
+				me.setAnimation(config.catchAnimId());
+				me.setAnimationFrame(0);
+			}
 			sound.play(r);
 		});
 

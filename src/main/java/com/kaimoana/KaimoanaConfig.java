@@ -97,6 +97,18 @@ public interface KaimoanaConfig extends Config
 		return 3924;
 	}
 
+	@ConfigItem(keyName = "catchAnim", name = "Catch animation", description = "Play an animation on your character when you land a fish", section = fx, position = 10)
+	default boolean catchAnim()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "catchAnimId", name = "Catch animation ID", description = "862 Cheer, 2109 Jump for joy, 865 Clap, 2112 Salute, 863 Wave, 866 Dance", section = fx, position = 10)
+	default int catchAnimId()
+	{
+		return 862;
+	}
+
 	@ConfigItem(keyName = "animOverride", name = "Override fishing animation", description = "Replace your fishing animation while fishing", section = fx, position = 11)
 	default boolean animOverride()
 	{
