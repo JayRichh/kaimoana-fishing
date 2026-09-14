@@ -88,13 +88,13 @@ public interface KaimoanaConfig extends Config
 	@ConfigItem(keyName = "soundId", name = "Sound effect ID", description = "In-game sound effect to play on a catch", section = fx, position = 9)
 	default int soundId()
 	{
-		return 2414;
+		return 2581;
 	}
 
 	@ConfigItem(keyName = "trophySoundId", name = "Trophy sound ID", description = "Sound for Trophy grade and above", section = fx, position = 10)
 	default int trophySoundId()
 	{
-		return 2396;
+		return 3924;
 	}
 
 	@ConfigItem(keyName = "animOverride", name = "Override fishing animation", description = "Replace your fishing animation while fishing", section = fx, position = 11)
