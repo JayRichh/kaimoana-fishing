@@ -43,6 +43,7 @@ import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
@@ -183,11 +184,16 @@ public class KaimoanaPlugin extends Plugin
 	public void onGameTick(GameTick t)
 	{
 		fishing.onTick(client);
-		spawner.onTick();
 		if (dirty && client.getTickCount() % 50 == 0)
 		{
 			flush();
 		}
+	}
+
+	@Subscribe
+	public void onClientTick(ClientTick t)
+	{
+		spawner.onClientTick();
 	}
 
 	@Subscribe
@@ -405,11 +411,25 @@ public class KaimoanaPlugin extends Plugin
 		}
 	}
 
+	/** Item lookups need the client thread, so resolve every id there and hand Swing a plain map. */
 	private void refreshPanel()
 	{
-		if (panel != null)
+		if (panel == null)
 		{
-			panel.refresh(tideLog, this::itemIdFor);
+			return;
 		}
+		clientThread.invoke(() ->
+		{
+			Map<String, Integer> ids = new HashMap<>();
+			for (FishEntry e : registry.all())
+			{
+				ids.put(e.getName(), itemIdFor(e.getName()));
+			}
+			for (String name : tideLog.species.keySet())
+			{
+				ids.putIfAbsent(name, itemIdFor(name));
+			}
+			panel.refresh(tideLog, ids);
+		});
 	}
 }

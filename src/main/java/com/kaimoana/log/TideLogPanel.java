@@ -21,7 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -77,7 +77,7 @@ public class TideLogPanel extends PluginPanel
 	private final JPanel rows = new JPanel();
 
 	private TideLog log = new TideLog();
-	private Function<String, Integer> itemIdFor = n -> -1;
+	private Map<String, Integer> itemIds = new HashMap<>();
 
 	public TideLogPanel(ItemManager items, FishRegistry registry, KaimoanaConfig config)
 	{
@@ -131,10 +131,10 @@ public class TideLogPanel extends PluginPanel
 		sort.addActionListener(e -> rebuild());
 	}
 
-	public void refresh(TideLog log, Function<String, Integer> itemIdFor)
+	public void refresh(TideLog log, Map<String, Integer> itemIds)
 	{
 		this.log = log;
-		this.itemIdFor = itemIdFor;
+		this.itemIds = itemIds;
 		SwingUtilities.invokeLater(this::rebuild);
 	}
 
@@ -204,7 +204,7 @@ public class TideLogPanel extends PluginPanel
 
 		JLabel icon = new JLabel();
 		icon.setPreferredSize(new Dimension(36, 32));
-		int id = itemIdFor.apply(e.getName());
+		int id = itemIds.getOrDefault(e.getName(), -1);
 		if (id >= 0)
 		{
 			AsyncBufferedImage img = items.getImage(id);

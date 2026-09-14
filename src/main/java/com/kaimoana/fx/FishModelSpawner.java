@@ -7,22 +7,27 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Model;
 import net.runelite.api.ModelData;
+import net.runelite.api.Perspective;
 import net.runelite.api.Player;
 import net.runelite.api.RuneLiteObject;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.client.game.ItemManager;
 
 /**
- * Spawns the caught fish's item model at the fishing spot, arcs it to the player, holds it, then
- * despawns. One active object at a time. All methods must run on the client thread.
+ * Spawns the caught fish's item model at the fishing spot, arcs it smoothly to the player's hand,
+ * holds it there, then despawns. One active object at a time. Client thread only.
+ * Timing is in game cycles (20 ms) so movement is smooth rather than stepping once per tick.
  */
 @Slf4j
 public class FishModelSpawner
 {
-	private static final int HAND_HEIGHT = 110;
-	private static final int PEAK_HEIGHT = 220;
-	private static final int HAND_FORWARD = 36;
-	private static final int MAX_DRIFT = 128 * 2;
+	private static final int CYCLES_PER_TICK = 30;
+	private static final int HAND_HEIGHT = 95;
+	private static final int PEAK_EXTRA = 160;
+	private static final int HAND_FORWARD = 28;
+	private static final int HAND_RIGHT = 26;
+	private static final int FISH_SCALE = 60;
+	private static final int MAX_DRIFT = 128 * 6;
 	/** Gold in Jagex HSL: hue 8, saturation 6, luminance 60. */
 	private static final short GOLD = (short) ((8 << 10) | (6 << 7) | 60);
 
@@ -32,12 +37,10 @@ public class FishModelSpawner
 
 	private RuneLiteObject obj;
 	private LocalPoint from;
-	private int tick;
-	private int arc;
-	private int hold;
-	private boolean pop;
+	private int startCycle;
+	private int arcCycles;
+	private int holdCycles;
 	private Model model;
-	private Model popModel;
 
 	@Inject
 	public FishModelSpawner(Client client, ItemManager items, KaimoanaConfig config)
@@ -64,8 +67,7 @@ public class FishModelSpawner
 		fish = fish.cloneVertices().cloneColors();
 		if (r.isShiny())
 		{
-			short[] cols = fish.getFaceColors();
-			for (short c : cols.clone())
+			for (short c : fish.getFaceColors().clone())
 			{
 				fish.recolor(c, GOLD);
 			}
@@ -79,27 +81,24 @@ public class FishModelSpawner
 				fish = client.mergeModels(fish, hat);
 			}
 		}
+		fish.scale(FISH_SCALE, FISH_SCALE, FISH_SCALE);
 		model = fish.light();
-		popModel = fish.cloneVertices().scale(40, 40, 40).light();
 
 		LocalPoint to = p.getLocalLocation();
 		from = spot != null ? spot : to;
-		arc = Math.max(1, arcTicks);
-		hold = Math.max(1, holdTicks);
-		tick = 0;
-		pop = config.splashPop();
+		arcCycles = Math.max(1, arcTicks) * CYCLES_PER_TICK;
+		holdCycles = Math.max(1, holdTicks) * CYCLES_PER_TICK;
+		startCycle = client.getGameCycle();
 
 		obj = client.createRuneLiteObject();
-		obj.setModel(pop ? popModel : model);
-		obj.setLocation(from, client.getPlane());
-		obj.setZ(0);
-		obj.setOrientation(p.getOrientation());
+		obj.setModel(model);
 		obj.setDrawFrontTilesFirst(true);
+		place(from, 0, p.getOrientation());
 		obj.setActive(true);
 	}
 
-	/** Called every game tick; advances arc, then hold, then despawns. */
-	public void onTick()
+	/** Called every client tick (20 ms). */
+	public void onClientTick()
 	{
 		if (obj == null)
 		{
@@ -111,30 +110,24 @@ public class FishModelSpawner
 			clear();
 			return;
 		}
-		tick++;
-		LocalPoint to = p.getLocalLocation();
-		if (from.distanceTo(to) > MAX_DRIFT * 4)
+		LocalPoint hand = handPoint(p);
+		if (from.distanceTo(hand) > MAX_DRIFT)
 		{
 			clear();
 			return;
 		}
-		if (tick <= arc)
+		int elapsed = client.getGameCycle() - startCycle;
+		if (elapsed <= arcCycles)
 		{
-			double t = tick / (double) arc;
-			int x = (int) (from.getX() + (to.getX() - from.getX()) * t);
-			int y = (int) (from.getY() + (to.getY() - from.getY()) * t);
-			int h = (int) (HAND_HEIGHT * t + PEAK_HEIGHT * 4 * t * (1 - t));
-			obj.setModel(model);
-			obj.setLocation(new LocalPoint(x, y), client.getPlane());
-			obj.setZ(-h);
-			obj.setOrientation(p.getOrientation());
+			double t = elapsed / (double) arcCycles;
+			int x = (int) (from.getX() + (hand.getX() - from.getX()) * t);
+			int y = (int) (from.getY() + (hand.getY() - from.getY()) * t);
+			int h = (int) (HAND_HEIGHT * t + PEAK_EXTRA * 4 * t * (1 - t));
+			place(new LocalPoint(x, y), h, p.getOrientation() + 512);
 		}
-		else if (tick <= arc + hold)
+		else if (elapsed <= arcCycles + holdCycles)
 		{
-			obj.setModel(model);
-			obj.setLocation(forward(to, p.getOrientation()), client.getPlane());
-			obj.setZ(-HAND_HEIGHT);
-			obj.setOrientation(p.getOrientation());
+			place(hand, HAND_HEIGHT, p.getOrientation() + 512);
 		}
 		else
 		{
@@ -142,10 +135,25 @@ public class FishModelSpawner
 		}
 	}
 
-	private static LocalPoint forward(LocalPoint at, int orientation)
+	private void place(LocalPoint lp, int heightAboveGround, int orientation)
 	{
-		double rad = orientation * Math.PI / 1024.0;
-		return new LocalPoint(at.getX() + (int) (Math.sin(rad) * HAND_FORWARD), at.getY() + (int) (Math.cos(rad) * HAND_FORWARD));
+		int plane = client.getPlane();
+		int ground = Perspective.getTileHeight(client, lp, plane);
+		obj.setLocation(lp, plane);
+		obj.setZ(ground - heightAboveGround);
+		obj.setOrientation(orientation & 2047);
+	}
+
+	/** Point just forward and to the right of the player, where the rod hand sits. */
+	private static LocalPoint handPoint(Player p)
+	{
+		LocalPoint at = p.getLocalLocation();
+		double a = p.getOrientation() * Math.PI / 1024.0;
+		double fx = -Math.sin(a), fy = -Math.cos(a);
+		double rx = -Math.cos(a), ry = Math.sin(a);
+		int x = at.getX() + (int) Math.round(fx * HAND_FORWARD + rx * HAND_RIGHT);
+		int y = at.getY() + (int) Math.round(fy * HAND_FORWARD + ry * HAND_RIGHT);
+		return new LocalPoint(x, y);
 	}
 
 	public void clear()
@@ -156,6 +164,5 @@ public class FishModelSpawner
 			obj = null;
 		}
 		model = null;
-		popModel = null;
 	}
 }
