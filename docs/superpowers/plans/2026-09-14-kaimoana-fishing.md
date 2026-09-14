@@ -496,7 +496,7 @@ public class WeightRollerTest
 - [ ] **Step 3: implement**
 
 ```java
-package com.kaimoana.catch;
+package com.kaimoana.detect;
 import lombok.Builder; import lombok.Value; import net.runelite.api.coords.WorldPoint;
 @Value @Builder
 public class CatchEvent
@@ -508,7 +508,7 @@ public class CatchEvent
 
 ```java
 package com.kaimoana.registry;
-import com.kaimoana.catch.CatchEvent; import lombok.Builder; import lombok.Value;
+import com.kaimoana.detect.CatchEvent; import lombok.Builder; import lombok.Value;
 @Value @Builder
 public class CatchResult
 {
@@ -572,7 +572,7 @@ If `distributionIsSkewedLow` fails, tune the divisor (3.0) until >65% of rolls l
 - [ ] **Step 1: failing test**
 
 ```java
-package com.kaimoana.catch;
+package com.kaimoana.detect;
 import static org.junit.Assert.*;
 import java.util.*; import org.junit.Test;
 public class CatchDetectorTest
@@ -628,7 +628,7 @@ public class CatchDetectorTest
 - [ ] **Step 3: implement**
 
 ```java
-package com.kaimoana.catch;
+package com.kaimoana.detect;
 import java.util.*; import java.util.regex.*; import net.runelite.api.coords.WorldPoint;
 public class CatchDetector
 {
@@ -779,7 +779,7 @@ Check math for gap 3: budget 2, arc = min(cfg, 1)=1... test expects arc 2. Fix: 
 - [ ] **Step 5: FishingStateTracker** (no unit test; verified in-game)
 
 ```java
-package com.kaimoana.catch;
+package com.kaimoana.detect;
 import java.util.Locale; import java.util.Set;
 import net.runelite.api.*; import net.runelite.api.coords.WorldPoint;
 public class FishingStateTracker
@@ -945,7 +945,7 @@ public final class LocationResolver
 ```java
 package com.kaimoana.unlocks;
 import static org.junit.Assert.*;
-import com.kaimoana.catch.CatchEvent; import com.kaimoana.log.TideLog; import com.kaimoana.registry.*;
+import com.kaimoana.detect.CatchEvent; import com.kaimoana.log.TideLog; import com.kaimoana.registry.*;
 import java.util.List; import org.junit.Test;
 public class UnlockEngineTest
 {
@@ -1475,7 +1475,7 @@ If `ImageCapture.saveScreenshot` signature differs (it has changed across versio
 package com.kaimoana;
 
 import com.google.inject.Provides;
-import com.kaimoana.catch.*; import com.kaimoana.chat.*; import com.kaimoana.fx.*; import com.kaimoana.integrations.*; import com.kaimoana.log.*; import com.kaimoana.registry.*; import com.kaimoana.unlocks.UnlockEngine;
+import com.kaimoana.detect.*; import com.kaimoana.chat.*; import com.kaimoana.fx.*; import com.kaimoana.integrations.*; import com.kaimoana.log.*; import com.kaimoana.registry.*; import com.kaimoana.unlocks.UnlockEngine;
 import java.awt.image.BufferedImage; import java.util.*; import javax.inject.Inject; import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*; import net.runelite.api.coords.LocalPoint; import net.runelite.api.coords.WorldPoint; import net.runelite.api.events.*;
 import net.runelite.client.callback.ClientThread; import net.runelite.client.chat.ChatCommandManager; import net.runelite.client.chat.ChatMessageManager; import net.runelite.client.config.ConfigManager;
