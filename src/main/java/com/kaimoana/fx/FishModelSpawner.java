@@ -22,10 +22,7 @@ import net.runelite.client.game.ItemManager;
 public class FishModelSpawner
 {
 	private static final int CYCLES_PER_TICK = 30;
-	private static final int HAND_HEIGHT = 95;
 	private static final int PEAK_EXTRA = 160;
-	private static final int HAND_FORWARD = 28;
-	private static final int HAND_RIGHT = 26;
 	private static final int FISH_SCALE = 60;
 	private static final int MAX_DRIFT = 128 * 6;
 	/** Gold in Jagex HSL: hue 8, saturation 6, luminance 60. */
@@ -122,12 +119,12 @@ public class FishModelSpawner
 			double t = elapsed / (double) arcCycles;
 			int x = (int) (from.getX() + (hand.getX() - from.getX()) * t);
 			int y = (int) (from.getY() + (hand.getY() - from.getY()) * t);
-			int h = (int) (HAND_HEIGHT * t + PEAK_EXTRA * 4 * t * (1 - t));
+			int h = (int) (config.holdHeight() * t + PEAK_EXTRA * 4 * t * (1 - t));
 			place(new LocalPoint(x, y), h, p.getOrientation() + 512);
 		}
 		else if (elapsed <= arcCycles + holdCycles)
 		{
-			place(hand, HAND_HEIGHT, p.getOrientation() + 512);
+			place(hand, config.holdHeight(), p.getOrientation() + 512);
 		}
 		else
 		{
@@ -145,14 +142,14 @@ public class FishModelSpawner
 	}
 
 	/** Point just forward and to the right of the player, where the rod hand sits. */
-	private static LocalPoint handPoint(Player p)
+	private LocalPoint handPoint(Player p)
 	{
 		LocalPoint at = p.getLocalLocation();
 		double a = p.getOrientation() * Math.PI / 1024.0;
 		double fx = -Math.sin(a), fy = -Math.cos(a);
 		double rx = -Math.cos(a), ry = Math.sin(a);
-		int x = at.getX() + (int) Math.round(fx * HAND_FORWARD + rx * HAND_RIGHT);
-		int y = at.getY() + (int) Math.round(fy * HAND_FORWARD + ry * HAND_RIGHT);
+		int x = at.getX() + (int) Math.round(fx * config.holdForward() + rx * config.holdRight());
+		int y = at.getY() + (int) Math.round(fy * config.holdForward() + ry * config.holdRight());
 		return new LocalPoint(x, y);
 	}
 

@@ -54,6 +54,27 @@ public interface KaimoanaConfig extends Config
 		return 4;
 	}
 
+	@Range(min = 0, max = 400)
+	@ConfigItem(keyName = "holdHeight", name = "Hold height", description = "How high above the ground the held fish sits. ~95 waist, ~190 raised hand", section = fx, position = 3)
+	default int holdHeight()
+	{
+		return 190;
+	}
+
+	@Range(min = -60, max = 60)
+	@ConfigItem(keyName = "holdForward", name = "Hold forward offset", description = "Forward/back offset of the held fish from your tile centre", section = fx, position = 3)
+	default int holdForward()
+	{
+		return 10;
+	}
+
+	@Range(min = -60, max = 60)
+	@ConfigItem(keyName = "holdRight", name = "Hold sideways offset", description = "Right/left offset of the held fish from your tile centre", section = fx, position = 3)
+	default int holdRight()
+	{
+		return 22;
+	}
+
 	@ConfigItem(keyName = "hats", name = "Fish hats", description = "Unlocked hats are shown on caught fish", section = fx, position = 4)
 	default boolean hats()
 	{
@@ -103,10 +124,10 @@ public interface KaimoanaConfig extends Config
 		return true;
 	}
 
-	@ConfigItem(keyName = "catchAnimId", name = "Catch animation ID", description = "862 Cheer, 2109 Jump for joy, 865 Clap, 2112 Salute, 863 Wave, 866 Dance", section = fx, position = 10)
+	@ConfigItem(keyName = "catchAnimId", name = "Catch animation ID", description = "4275 Idea (one arm up), 862 Cheer, 2112 Salute, 865 Clap, 2109 Jump for joy", section = fx, position = 10)
 	default int catchAnimId()
 	{
-		return 862;
+		return 4275;
 	}
 
 	@ConfigItem(keyName = "animOverride", name = "Override fishing animation", description = "Replace your fishing animation while fishing", section = fx, position = 11)
