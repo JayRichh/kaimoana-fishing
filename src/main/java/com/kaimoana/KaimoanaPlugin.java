@@ -194,6 +194,7 @@ public class KaimoanaPlugin extends Plugin
 	public void onClientTick(ClientTick t)
 	{
 		spawner.onClientTick();
+		animOverride.onClientTick();
 	}
 
 	@Subscribe
@@ -332,6 +333,8 @@ public class KaimoanaPlugin extends Plugin
 			{
 				return;
 			}
+			int arcTicksForPose = cadence.effectiveArc(config.arcTicks());
+			int holdTicksForPose = cadence.effectiveHold(config.holdTicks());
 			if (config.showFishModel())
 			{
 				Integer hatId = null;
@@ -354,12 +357,7 @@ public class KaimoanaPlugin extends Plugin
 				}
 				spawner.spawn(r, from, arc, hold, hatId, entry.getHatOffsetY());
 			}
-			Player me = client.getLocalPlayer();
-			if (config.catchAnim() && me != null)
-			{
-				me.setAnimation(config.catchAnimId());
-				me.setAnimationFrame(0);
-			}
+			animOverride.beginCatch(arcTicksForPose + holdTicksForPose);
 			sound.play(r);
 		});
 

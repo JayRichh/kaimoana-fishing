@@ -58,14 +58,14 @@ public interface KaimoanaConfig extends Config
 	@ConfigItem(keyName = "holdHeight", name = "Hold height", description = "How high above the ground the held fish sits. ~95 waist, ~190 raised hand", section = fx, position = 3)
 	default int holdHeight()
 	{
-		return 190;
+		return 235;
 	}
 
 	@Range(min = -60, max = 60)
 	@ConfigItem(keyName = "holdForward", name = "Hold forward offset", description = "Forward/back offset of the held fish from your tile centre", section = fx, position = 3)
 	default int holdForward()
 	{
-		return 10;
+		return 14;
 	}
 
 	@Range(min = -60, max = 60)
